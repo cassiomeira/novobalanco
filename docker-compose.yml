@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3500:3000"
+    environment:
+      - DB_HOST=firebird
+      - DB_PORT=3050
+      - DB_PATH=/data/ADM_DEV.FDB
+      - DB_USER=SYSDBA
+      - DB_PASSWORD=masterkey
+      - DB_CHARSET=WIN1252
+    volumes:
+      - firebird_data:/data
+      - sqlite_data:/app/db
+
+  firebird:
+    image: jacobalberty/firebird:2.5
+    environment:
+      - FIREBIRD_DATABASE=ADM_DEV.FDB
+      - FIREBIRD_USER=SYSDBA
+      - FIREBIRD_PASSWORD=masterkey
+    volumes:
+      - firebird_data:/firebird/data
+
+volumes:
+  firebird_data:
+  sqlite_data:

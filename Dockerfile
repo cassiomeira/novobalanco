@@ -1,7 +1,7 @@
 FROM node:18-alpine
 
 # Cria diretorio da aplicacao
-WORKDIR /app
+WORKDIR /source
 
 # Instala dependencias primeiro (melhora o cache do Docker)
 COPY package*.json ./
@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 # Cria pasta para o upload do banco de dados (Volume compartilhado Coolify)
-RUN mkdir -p /app/data
+RUN mkdir -p /source/data
 
 # Expõe a porta
 EXPOSE 3000

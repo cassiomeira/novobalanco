@@ -14,7 +14,7 @@ services:
       - DB_CHARSET=WIN1252
     volumes:
       - firebird_data:/data
-      - sqlite_data:/app/db
+      - sqlite_data:/source/db
 
   firebird:
     image: jacobalberty/firebird:2.5.9-ss

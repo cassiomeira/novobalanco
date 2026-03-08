@@ -761,7 +761,7 @@ app.delete('/api/balanco/zerar-grupo/:id', async (req, res) => {
 // Faz com que o Node sirva o index.html da pasta public caso a rota nao seja de API.
 // Isso permite que a navegação interna do App React/Expo Web funcione no navegador.
 const path = require('path');
-app.get('/(.*)', (req, res) => {
+app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     } else {

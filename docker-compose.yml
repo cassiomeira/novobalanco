@@ -17,7 +17,7 @@ services:
       - sqlite_data:/app/db
 
   firebird:
-    image: jacobalberty/firebird:2.5
+    image: jacobalberty/firebird:2.5.9-ss
     environment:
       - FIREBIRD_DATABASE=ADM_DEV.FDB
       - FIREBIRD_USER=SYSDBA

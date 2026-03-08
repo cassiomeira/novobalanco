@@ -1,248 +1,37 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Balanço - Busca Preço</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background-color: #f0f2f5; }
-        .navbar { background-color: #1a1a2e !important; }
-        .session-row { cursor: pointer; transition: background 0.15s; }
-        .session-row:hover { background-color: #e8f4ff !important; }
-        .items-detail-row { background-color: #f8f9ff; display: none; }
-        .items-detail-row.open { display: table-row; }
-        .items-table { font-size: 0.85rem; margin: 0; }
-        .items-table th { background: #e8eaf6; }
-        .badge-qty { font-size: 1rem; }
-        .chevron { transition: transform 0.2s; }
-        .chevron.rotated { transform: rotate(180deg); }
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>buscapreco-app</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
     </style>
-</head>
-<body>
+  <link rel="icon" href="/favicon.ico" /></head>
 
-<nav class="navbar navbar-dark mb-4">
-    <div class="container">
-        <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-boxes-stacked me-2"></i> Busca Preço - Painel de Balanço</span>
-        <button class="btn btn-danger fw-bold" onclick="zerarTudo()">
-            <i class="fa-solid fa-trash-can me-1"></i> Zerar TUDO
-        </button>
-    </div>
-</nav>
-
-<div class="container">
-
-    <!-- Grupos Consolidados -->
-    <div class="card border-success mb-4">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <span class="fw-bold"><i class="fa-solid fa-layer-group me-2"></i> Consolidados por Grupo (Exportação Final)</span>
-            <button class="btn btn-sm btn-light text-success" onclick="loadGroups()">
-                <i class="fa-solid fa-rotate-right me-1"></i> Atualizar
-            </button>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 text-center align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Cód. Grupo</th>
-                            <th class="text-start">Descrição do Grupo</th>
-                            <th>Sessões</th>
-                            <th>EANs Distintos</th>
-                            <th>Qtd Total</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="groups-table-body">
-                        <tr><td colspan="6" class="text-center py-4 text-muted">Aguardando dados...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sessões Individuais com detalhamento -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center" style="background:#6C63FF;color:white;">
-            <span class="fw-bold"><i class="fa-solid fa-list-check me-2"></i> Sessões Individuais — Clique para ver os itens</span>
-            <button class="btn btn-sm btn-light" onclick="loadSessions()">
-                <i class="fa-solid fa-rotate-right me-1"></i> Atualizar
-            </button>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-bordered mb-0 align-middle" id="sessions-table">
-                    <thead class="table-light text-center">
-                        <tr>
-                            <th style="width:30px"></th>
-                            <th>ID</th>
-                            <th>Data e Hora</th>
-                            <th>Usuário</th>
-                            <th>Grupo</th>
-                            <th>Qtd Total</th>
-                            <th>EANs Distintos</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sessions-table-body">
-                        <tr><td colspan="8" class="text-center py-4 text-muted">Aguardando dados...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    const API_URL = '';
-
-    async function zerarTudo() {
-        if (!confirm('⚠️ Isso vai apagar TODOS os dados de balanço. Tem certeza?')) return;
-        const r = await fetch(`${API_URL}/api/balanco/zerar-tudo`, { method: 'DELETE' });
-        const d = await r.json();
-        alert(d.message);
-        loadGroups(); loadSessions();
-    }
-
-    async function zerarGrupo(id, nome) {
-        if (!confirm(`⚠️ Zerar todos os dados do grupo "${nome}"?`)) return;
-        const r = await fetch(`${API_URL}/api/balanco/zerar-grupo/${id}`, { method: 'DELETE' });
-        const d = await r.json();
-        alert(d.message);
-        loadGroups(); loadSessions();
-    }
-
-    async function loadGroups() {
-        const tbody = document.getElementById('groups-table-body');
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-success"></div> Carregando...</td></tr>`;
-        try {
-            const grupos = await fetch(`${API_URL}/api/balanco/grupos-sincronizados`).then(r => r.json());
-            if (!grupos.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum grupo sincronizado ainda.</td></tr>`; return; }
-            tbody.innerHTML = '';
-            grupos.forEach(g => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="fw-bold">${g.grupo_id}</td>
-                    <td class="text-start fw-bold text-success">${g.grupo_nome}</td>
-                    <td><span class="badge bg-secondary">${g.total_sessoes}</span></td>
-                    <td>${g.produtos_diferentes || 0}</td>
-                    <td class="fw-bold fs-5">${g.total_itens || 0} un.</td>
-                    <td class="d-flex gap-2 justify-content-center">
-                        <a href="/api/balanco/export-group/${g.grupo_id}?only=com_ean" class="btn btn-primary btn-sm fw-bold" download>
-                            <i class="fa-solid fa-download me-1"></i> TXT (EAN)
-                        </a>
-                        <a href="/api/balanco/export-group/${g.grupo_id}?only=sem_ean" class="btn btn-warning btn-sm fw-bold" download>
-                            <i class="fa-solid fa-download me-1"></i> TXT (Sem EAN)
-                        </a>
-                        <button class="btn btn-danger btn-sm" onclick="zerarGrupo('${g.grupo_id}','${g.grupo_nome}')">
-                            <i class="fa-solid fa-trash-can me-1"></i> Zerar
-                        </button>
-                    </td>`;
-                tbody.appendChild(tr);
-            });
-        } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">Erro ao carregar grupos.</td></tr>`;
-        }
-    }
-
-    async function loadSessions() {
-        const tbody = document.getElementById('sessions-table-body');
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Carregando...</td></tr>`;
-        try {
-            const sessions = await fetch(`${API_URL}/api/balanco/sessions`).then(r => r.json());
-            if (!sessions.length) { tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Nenhuma sessão encontrada.</td></tr>`; return; }
-            tbody.innerHTML = '';
-            sessions.forEach(s => {
-                const date = new Date(s.data_inicio).toLocaleString('pt-BR');
-                const sessionRow = document.createElement('tr');
-                sessionRow.className = 'session-row';
-                sessionRow.onclick = () => toggleItems(s.id);
-                sessionRow.id = `sess-${s.id}`;
-                sessionRow.innerHTML = `
-                    <td class="text-center"><i class="fa-solid fa-chevron-down chevron" id="chev-${s.id}"></i></td>
-                    <td class="text-muted fw-bold">#${s.id}</td>
-                    <td>${date}</td>
-                    <td><i class="fa-solid fa-user text-muted me-1"></i>${s.usuario_nome}</td>
-                    <td class="fw-bold">${s.grupo_nome}</td>
-                    <td><span class="badge bg-primary badge-qty">${s.total_itens || 0} un.</span></td>
-                    <td>${s.produtos_diferentes || 0}</td>
-                    <td onclick="event.stopPropagation()">
-                        <div class="d-flex gap-1">
-                            <a href="/api/balanco/export/${s.id}?only=com_ean" class="btn btn-sm btn-outline-primary" download>
-                                <i class="fa-solid fa-file-text"></i> (EAN)
-                            </a>
-                            <a href="/api/balanco/export/${s.id}?only=sem_ean" class="btn btn-sm btn-outline-warning" download>
-                                <i class="fa-solid fa-file-text"></i> (Sem EAN)
-                            </a>
-                        </div>
-                    </td>`;
-                tbody.appendChild(sessionRow);
-
-                // Row that will contain the item detail table, hidden by default
-                const detailRow = document.createElement('tr');
-                detailRow.className = 'items-detail-row';
-                detailRow.id = `detail-${s.id}`;
-                detailRow.innerHTML = `<td colspan="8" class="p-0"><div id="items-content-${s.id}" class="p-3"></div></td>`;
-                tbody.appendChild(detailRow);
-            });
-        } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center py-3">Erro ao carregar sessões.</td></tr>`;
-        }
-    }
-
-    async function toggleItems(sessionId) {
-        const detailRow = document.getElementById(`detail-${sessionId}`);
-        const chevron = document.getElementById(`chev-${sessionId}`);
-        const isOpen = detailRow.classList.contains('open');
-
-        if (isOpen) {
-            detailRow.classList.remove('open');
-            chevron.classList.remove('rotated');
-            return;
-        }
-
-        detailRow.classList.add('open');
-        chevron.classList.add('rotated');
-
-        const content = document.getElementById(`items-content-${sessionId}`);
-        content.innerHTML = `<div class="text-center py-2"><div class="spinner-border spinner-border-sm"></div> Carregando itens...</div>`;
-
-        try {
-            const itens = await fetch(`${API_URL}/api/balanco/session-items/${sessionId}`).then(r => r.json());
-            if (!itens.length) { content.innerHTML = `<p class="text-muted text-center mb-0">Nenhum item nesta sessão.</p>`; return; }
-
-            let html = `
-                <table class="table table-bordered table-sm items-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>EAN / Código de Barras</th>
-                            <th class="text-start">Descrição do Produto</th>
-                            <th>Quantidade</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-            itens.forEach((item, idx) => {
-                html += `<tr>
-                    <td class="text-muted">${idx + 1}</td>
-                    <td><code>${item.ean}</code></td>
-                    <td class="text-start">${item.descricao || '—'}</td>
-                    <td><span class="badge bg-success">${item.quantidade} un.</span></td>
-                </tr>`;
-            });
-            html += `</tbody></table>`;
-            content.innerHTML = html;
-        } catch(e) {
-            content.innerHTML = `<p class="text-danger text-center mb-0">Erro ao carregar itens.</p>`;
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadGroups();
-        loadSessions();
-    });
-</script>
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  <script src="/_expo/static/js/web/index-a2c310d10399ef2000ffce55a411791e.js" defer></script>
 </body>
 </html>
